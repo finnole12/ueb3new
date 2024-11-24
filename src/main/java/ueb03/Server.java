@@ -65,9 +65,11 @@ public class Server {
                     try {
                         System.out.println("readstart");
                         while(true) {
-                            //iSR.readLine().getBytes();
-                            LogMessageOuterClass.LogMessage logm = LogMessageOuterClass.LogMessage.parseFrom(iSR.readLine().getBytes());
+                            byte[] bytes = iSR.readLine().getBytes();
+                            LogMessageOuterClass.LogMessage logm =
+                                    LogMessageOuterClass.LogMessage.parseFrom(bytes);
                             System.out.println(logm.getMessage());
+                            writeToLogFile(logm);
                         }
                         //System.out.println("readend");
                     } catch (IOException e) {
@@ -79,5 +81,21 @@ public class Server {
             }
         };
         thread.start();
+    }
+
+    private void writeToLogFile(LogMessageOuterClass.LogMessage logm) {
+        File logfile = new File("./log.txt");
+        try {
+            if (!logfile.exists()) logfile.createNewFile();
+
+            FileOutputStream fIS = new FileOutputStream(logfile, true);
+            String logEntry = String.format("%-6s  (%s): Message recieved from %-11s\tlocated at %-10s \t\"%s\"\n",
+                    logm.getSeverity(), logm.getTimestamp(), logm.getCreator(), logm.getLocation() + ".", logm.getMessage());
+
+            fIS.write(logEntry.getBytes());
+            fIS.close();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
