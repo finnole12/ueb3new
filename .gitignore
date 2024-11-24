@@ -1,7 +1,7 @@
 /.idea/
 /Client/.idea/
 /Server/.idea/
-/Server/target/*
+/Server/target/**
 /Server/src/main/java/ueb4/gRPCServer/
 /Client/src/main/java/ueb4/gRPCServer/
-/Client/target/*
+/Client/target/**
