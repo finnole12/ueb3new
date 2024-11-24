@@ -1,0 +1,38 @@
+syntax = "proto2";
+
+package gRPCServer;
+
+service Service {
+  // Obtains the feature at a given position.
+  rpc GetSize(GetSize_Request) returns (RPC_Response) {}
+}
+
+message RPC_Request {
+
+  enum Operation {
+    GETRECORD = 1;
+    ADDRECORD = 2;
+    GETSIZE = 3;
+  }
+  required Operation operation = 1;
+  optional GetRecord_Request getRecord_args = 2;
+  optional AddRecord_Request addRecord_args = 3;
+
+}
+
+message GetRecord_Request {
+  required int32 index = 1;
+}
+
+message AddRecord_Request {
+  required string record = 1;
+  required int32 index = 2;
+}
+
+message RPC_Response {
+  required string response = 1;
+}
+
+message GetSize_Request {
+
+}
