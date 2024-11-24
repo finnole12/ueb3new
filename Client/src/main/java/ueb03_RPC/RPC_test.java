@@ -24,15 +24,6 @@ public class RPC_test {
         File logfile = new File("./log.txt");
         if (logfile.exists()) logfile.delete();
 
-        // creating the server
-        RPC_Server server = new RPC_Server();
-        try {
-            // starting the server
-            server.startServer();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         // creating a client
         final Thread clientThread = new Thread(() -> {
             try {

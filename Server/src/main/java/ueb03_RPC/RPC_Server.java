@@ -62,7 +62,7 @@ public class RPC_Server {
                     handleResponse(rpc_request, clientSocket);
                 } catch (IOException e) {
                     System.out.println("Server: Error: " + e.getMessage());
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     break;
                 }
             }
