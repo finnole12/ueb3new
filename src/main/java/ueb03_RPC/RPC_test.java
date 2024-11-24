@@ -1,12 +1,10 @@
 package ueb03_RPC;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import rpcDatabaseServer.RPCRequest;
-import ueb03.Client;
-import ueb03.Server;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
 
 /*
  * Test class for client-Server-communication. The client will send a 
@@ -21,7 +19,7 @@ public class RPC_test {
      * Creates and starts a server instance and a client instance.
      * The client sends a GET request to the server.
      */
-    public static void main (String[] args) {
+    public static void main (String[] args) throws InterruptedException {
 
         File logfile = new File("./log.txt");
         if (logfile.exists()) logfile.delete();
@@ -35,49 +33,19 @@ public class RPC_test {
             e.printStackTrace();
         }
 
-//        // creating a client
-//        final Thread clientThread = new Thread(() -> {
-//            try {
-//                RPC_Client client = new RPC_Client("localhost", 12345);
-//                client.connect();
-//                client.sendRPC_Request(buildGetSizeRPC());
-//                client.awaitResponse();
-//            } catch (IOException e) {
-//                System.out.println(e.getMessage());
-//            }
-//            System.out.println("Client: thread ended");
-//        });
-
         // creating a client
-        final Thread clientThread2 = new Thread(() -> {
+        final Thread clientThread = new Thread(() -> {
             try {
                 RPC_Client client = new RPC_Client("localhost", 12345);
                 client.connect();
-//                client.sendRPC_Request(buildGetSizeRPC());
-                client.sendRPC_Request(buildAddRecordRPC("newrec", 0));
-                client.awaitResponse();
+                client.sendRPC_Request(getRequestArr());
             } catch (IOException e) {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
             }
             System.out.println("Client: thread ended");
         });
 
-//        // creating a client
-//        final Thread clientThread3 = new Thread(() -> {
-//            try {
-//                RPC_Client client = new RPC_Client("localhost", 12345);
-//                client.connect();
-//                client.sendRPC_Request(buildGetSizeRPC());
-//                client.awaitResponse();
-//            } catch (IOException e) {
-//                System.out.println(e.getMessage());
-//            }
-//            System.out.println("Client: thread ended");
-//        });
-
-//        clientThread.start();
-        clientThread2.start();
-//        clientThread3.start();
+        clientThread.start();
     }
 
     private static RPCRequest.RPC_Request buildGetSizeRPC () {
@@ -88,24 +56,40 @@ public class RPC_test {
         return rpcBuilder.build();
     }
 
-    private static RPCRequest.RPC_Request buildAddRecordRPC (String record, int index) {
-        RPCRequest.RPC_Request.Builder rpcBuilder = RPCRequest.RPC_Request.newBuilder();
+    private static RPCRequest.RPC_Request buildAddRecordRPC (String record, int index) throws InvalidProtocolBufferException {
 
-        rpcBuilder.setOperation(RPCRequest.RPC_Request.Operation.ADDRECORD);
-        rpcBuilder.setAddRecordRequest(RPCRequest.RPC_Request.AddRecord_Request.newBuilder()
-            .setRecord(record)
-            .setIndex(index).build());
+        RPCRequest.AddRecord_Request addRecord_request =
+                RPCRequest.AddRecord_Request.newBuilder().setRecord(record).setIndex(index).build();
 
-        return rpcBuilder.build();
+        RPCRequest.RPC_Request request =
+                RPCRequest.RPC_Request.newBuilder().setOperation(RPCRequest.RPC_Request.Operation.ADDRECORD).setAddRecordArgs(addRecord_request).build();
+
+        RPCRequest.RPC_Request rpc = RPCRequest.RPC_Request.parseFrom(request.toByteArray());
+
+        return request;
     }
 
     private static RPCRequest.RPC_Request buildGetRecordRPC (int index) {
         RPCRequest.RPC_Request.Builder rpcBuilder = RPCRequest.RPC_Request.newBuilder();
 
         rpcBuilder.setOperation(RPCRequest.RPC_Request.Operation.GETRECORD);
-        rpcBuilder.setGetRecordRequest(RPCRequest.RPC_Request.GetRecord_Request.newBuilder()
+        rpcBuilder.setGetRecordArgs(RPCRequest.GetRecord_Request.newBuilder()
             .setIndex(index));
 
         return rpcBuilder.build();
+    }
+
+    private static RPCRequest.RPC_Request[] getRequestArr() throws InvalidProtocolBufferException {
+        RPCRequest.RPC_Request[] requests = new RPCRequest.RPC_Request[9];
+        requests[0] = buildAddRecordRPC("Appen", 4101);
+        requests[1] = buildAddRecordRPC("Ahrensburg", 4102);
+        requests[2] = buildAddRecordRPC("Wedel", 4103);
+        requests[3] = buildAddRecordRPC("Aumühle", 4104);
+        requests[4] = buildAddRecordRPC("Seevetal", 4105);
+        requests[5] = buildAddRecordRPC("Quickborn", 4106);
+        requests[6] = buildGetRecordRPC(4103);
+        requests[7] = buildGetRecordRPC(4107);
+        requests[8] = buildGetSizeRPC();
+        return requests;
     }
 }

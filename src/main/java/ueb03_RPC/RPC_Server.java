@@ -2,12 +2,15 @@ package ueb03_RPC;
 
 import logserver.LogMessageOuterClass;
 import rpcDatabaseServer.RPCRequest;
+import rpcDatabaseServer.RPCResponse;
 
 import javax.naming.InvalidNameException;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Random;
 
 /*
  * Server that accepts Client requests. Each client will be dealt with in a seperate
@@ -15,7 +18,7 @@ import java.util.ArrayList;
  */
 public class RPC_Server {
 
-    private int port = 12345;
+    private final int port = 12345;
     ArrayList<String> database = new ArrayList<>();
 
     /*
@@ -24,25 +27,25 @@ public class RPC_Server {
      */
     public void startServer() throws IOException {
         System.out.println("Server: starting");
+        initilizeDatabase();
 
         try {
             ServerSocket serverSocket = new ServerSocket(port);
 
             // Thread tasked with accepting incoming client requests
-            final Thread thread = new Thread() {
-                public void run() {
-                    int i = 0;
-                    while(true) {
-                        try {
-                            Socket clientSocket = serverSocket.accept();
-                            System.out.println("Server: client connected");
-                            startClientThread(clientSocket);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+            final Thread thread = new Thread(() -> {
+                int i = 0;
+                while(true) {
+                    try {
+                        Socket clientSocket = serverSocket.accept();
+                        clientSocket.setKeepAlive(true);
+                        System.out.println("Server: client connected");
+                        startClientThread(clientSocket);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
                 }
-            };
+            });
             thread.start();
 
         } catch (IOException e) {
@@ -50,27 +53,18 @@ public class RPC_Server {
         }
     }
 
-    /*
-     * Starts a new Thread tasked with recieving messages from the clientSocket.
-     * If the input matches the filepath the file will be send to the client.
-     */
     private void startClientThread(Socket clientSocket) {
         final Thread thread = new Thread(() -> {
-            try {
-                BufferedReader iSR = new BufferedReader(new InputStreamReader (clientSocket.getInputStream()));
+            while (true) {
                 try {
-                    System.out.println("Server: Incoming Request");
-                    while(true) {
-                        byte[] bytes = iSR.readLine().getBytes();
-                        RPCRequest.RPC_Request rpc_request = RPCRequest.RPC_Request.parseFrom(bytes);
-                        handleResponse(rpc_request, clientSocket);
-                    }
-                    //System.out.println("readend");
+                    RPCRequest.RPC_Request rpc_request =
+                            RPCRequest.RPC_Request.parseDelimitedFrom(clientSocket.getInputStream());
+                    handleResponse(rpc_request, clientSocket);
                 } catch (IOException e) {
                     System.out.println("Server: Error: " + e.getMessage());
+                    e.printStackTrace();
+                    break;
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
             System.out.println("Server: thread ended");
         });
@@ -79,12 +73,16 @@ public class RPC_Server {
 
     private void handleResponse(RPCRequest.RPC_Request rpc_request, Socket clientSocket) throws IOException {
         String output = distributeRequests(rpc_request);
-        System.out.println("Server: sending: " + output);
+
+        // build rpc response
+        rpcDatabaseServer.RPCResponse.RPC_Response rpc_response = rpcDatabaseServer.RPCResponse.RPC_Response.newBuilder()
+                .setResponse(output)
+                .build();
 
         // send back to client
         OutputStream oS = clientSocket.getOutputStream();
-        oS.write((output + "\n").getBytes());
-        oS.close();
+        rpc_response.writeDelimitedTo(oS);
+        oS.flush();
     }
 
     private String distributeRequests(RPCRequest.RPC_Request rpc_request) {
@@ -95,12 +93,12 @@ public class RPC_Server {
                 output = "" + getSize();
                 break;
             case GETRECORD:
-                output = getRecord(rpc_request.getGetRecordRequest().getIndex());
+                output = getRecord(rpc_request.getGetRecordArgs().getIndex());
                 break;
             case ADDRECORD:
                 output = "" + addRecord(
-                        rpc_request.getAddRecordRequest().getRecord(),
-                        rpc_request.getAddRecordRequest().getIndex()
+                        rpc_request.getAddRecordArgs().getRecord(),
+                        rpc_request.getAddRecordArgs().getIndex()
                 );
                 break;
             default:
@@ -120,5 +118,11 @@ public class RPC_Server {
     private boolean addRecord(String record, int index) {
         database.add(index, record);
         return true;
+    }
+
+    private void initilizeDatabase() {
+        for (int i = 0; i < 5000; i++) {
+            database.add("Random Entry number: " + new Random().nextInt());
+        }
     }
 }

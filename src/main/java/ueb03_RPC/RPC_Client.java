@@ -1,6 +1,7 @@
 package ueb03_RPC;
 
 import rpcDatabaseServer.RPCRequest;
+import rpcDatabaseServer.RPCResponse;
 
 import java.io.*;
 import java.net.Socket;
@@ -8,7 +9,7 @@ import java.net.Socket;
 public class RPC_Client {
 
     private Socket clientSocket;
-    private OutputStream os;
+    private BufferedOutputStream bOS;
     private InputStream is;
 
     public RPC_Client(String host, int port) throws IOException {
@@ -18,24 +19,23 @@ public class RPC_Client {
     public void connect() throws IOException {
         System.out.println("Client: trying to connect");
 
-        os = clientSocket.getOutputStream();
         is = clientSocket.getInputStream();
+        bOS = new BufferedOutputStream(clientSocket.getOutputStream());
     }
 
-    public void sendRPC_Request(RPCRequest.RPC_Request rpc_request) throws IOException {
-        rpc_request.writeTo(os);
-        byte[] breakM = "\n".getBytes();
-        os.write(breakM);
+    public void sendRPC_Request(RPCRequest.RPC_Request[] rpc_requests) throws IOException {
+        for (RPCRequest.RPC_Request rpc_request : rpc_requests) {
+            rpc_request.writeDelimitedTo(bOS);
+            bOS.flush();
+            awaitResponse();
+        }
     }
 
-    public void awaitResponse() throws IOException {
-        System.out.println("Client: awaiting response");
-        BufferedReader bISR = new BufferedReader(new InputStreamReader(is));
+    void awaitResponse() throws IOException {
 
-        String response = bISR.readLine();
+        RPCResponse.RPC_Response rpc_response = RPCResponse.RPC_Response.parseDelimitedFrom(is);
+
+        String response = rpc_response.getResponse();
         System.out.println("Client: recieved: " + response);
-
-        os.close();
-        is.close();
     }
 }

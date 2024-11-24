@@ -10,15 +10,16 @@ message RPC_Request {
     GETSIZE = 3;
   }
   required Operation operation = 1;
-  optional GetRecord_Request getRecordRequest = 2;
-  optional AddRecord_Request addRecordRequest = 3;
+  optional GetRecord_Request getRecord_args = 2;
+  optional AddRecord_Request addRecord_args = 3;
 
-  message GetRecord_Request {
-    required int32 index = 1;
-  }
+}
 
-  message AddRecord_Request {
-    required string record = 1;
-    required int32 index = 2;
-  }
+message GetRecord_Request {
+  required int32 index = 1;
+}
+
+message AddRecord_Request {
+  required string record = 1;
+  required int32 index = 2;
 }

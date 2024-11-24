@@ -1,0 +1,9 @@
+syntax = "proto2";
+
+package rpcDatabaseServer;
+
+// Define the LogEntry message
+message RPC_Response {
+
+  required string response = 1;
+}

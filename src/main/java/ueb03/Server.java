@@ -13,9 +13,6 @@ import java.net.Socket;
 public class Server {
 
     int port = 12345;
-    String filePath = "ueb2\\files\\testseite.html";
-    File file = new File(filePath);
-
     /*
      * Starts the server. Will continuisly listen for incoming client requests.
      * 
