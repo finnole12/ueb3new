@@ -20,33 +20,12 @@ public class testStart {
      */
     public static void main (String[] args) {
 
-        File logfile = new File("./log.txt");
-        if (logfile.exists()) logfile.delete();
-
-        // creating the server
-        Server server = new Server();
-        try {
-            // starting the server
-            server.startServer();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         // creating a client
         final Thread clientThread = new Thread(() -> {
             try {
                 Client client = new Client("localhost", 12345);
                 client.connect();
-                client.sendLogMessage(getLogm("me", "hamburg", "hi"));
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
-        });
-        // creating a client
-        final Thread clientThread2 = new Thread(() -> {
-            try {
-                Client client = new Client("localhost", 12345);
-                client.connect();
+                client.sendLogMessage(getLogm("me", "hamburg", "hello"));
                 client.sendLogMessage(getLogm("Finn Ole", "here", "wassup"));
             } catch (IOException e) {
                 System.out.println(e.getMessage());
@@ -54,7 +33,6 @@ public class testStart {
         });
 
         clientThread.start();
-        clientThread2.start();
     }
 
     private static logserver.LogMessageOuterClass.LogMessage getLogm(String creator, String location, String message) {

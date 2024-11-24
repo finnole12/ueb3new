@@ -20,8 +20,6 @@ public class Client {
 
         os = clientSocket.getOutputStream();
         is = clientSocket.getInputStream();
-
-
     }
 
     public void sendLogMessage(logserver.LogMessageOuterClass.LogMessage logm) throws IOException {
@@ -29,17 +27,6 @@ public class Client {
         logm.writeTo(os);
         byte[] breakM = "\n".getBytes();
         os.write(breakM);
-
-        int b;
-        while (true) {
-            try {
-                if ((b = is.read()) == -1) {
-                    break;
-                }
-                System.out.print((char) b);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        os.flush();
     }
 }

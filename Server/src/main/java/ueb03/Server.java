@@ -70,7 +70,7 @@ public class Server {
                         }
                         //System.out.println("readend");
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        System.out.println("Connection ended");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -92,7 +92,7 @@ public class Server {
             fIS.write(logEntry.getBytes());
             fIS.close();
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 }
