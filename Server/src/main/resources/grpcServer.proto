@@ -3,21 +3,12 @@ syntax = "proto2";
 package gRPCServer;
 
 service Service {
-  // Obtains the feature at a given position.
+
   rpc GetSize(GetSize_Request) returns (RPC_Response) {}
-}
 
-message RPC_Request {
+  rpc AddRecord(AddRecord_Request) returns (RPC_Response) {}
 
-  enum Operation {
-    GETRECORD = 1;
-    ADDRECORD = 2;
-    GETSIZE = 3;
-  }
-  required Operation operation = 1;
-  optional GetRecord_Request getRecord_args = 2;
-  optional AddRecord_Request addRecord_args = 3;
-
+  rpc GetRecord(GetRecord_Request) returns (RPC_Response) {}
 }
 
 message GetRecord_Request {
@@ -29,10 +20,10 @@ message AddRecord_Request {
   required int32 index = 2;
 }
 
-message RPC_Response {
-  required string response = 1;
-}
-
 message GetSize_Request {
 
+}
+
+message RPC_Response {
+  required string response = 1;
 }
